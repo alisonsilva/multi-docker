@@ -1,0 +1,22 @@
+sodo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t alison.silva/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run alison.silva/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t alison.silva/multi-client ./client
+  - docker build -t alison.silva/multi-nginx ./nginx
+  - docker build -t alison.silva/multi-server ./server
+  - docker build -t alison.silva/multi-worker ./worker
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take those images and push them to docker hub
+  - docker push alison.silva/multi-client
+  - docker push alison.silva/multi-nginx
+  - docker push alison.silva/multi-server
+  - docker push alison.silva/multi-worker
